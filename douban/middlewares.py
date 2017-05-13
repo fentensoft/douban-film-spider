@@ -12,6 +12,7 @@ import random
 import string
 import json
 import urllib2
+import netifaces
 
 
 class ChangeProxyMiddleware(object):
@@ -20,10 +21,12 @@ class ChangeProxyMiddleware(object):
     def changeip(self, spider):
         spider.logger.info("Shutting down last connection.")
         os.system("poff tmp")
-        time.sleep(4)
+        while "ppp0" in netifaces.interfaces():
+            time.sleep(1)
         spider.logger.info("Starting new connection.")
         os.system("pon tmp")
-        time.sleep(4)
+        while "ppp0" not in netifaces.interfaces():
+            time.sleep(1)
         spider.logger.info("Adding new route.")
         os.system("ip route add default dev ppp0")
         time.sleep(1)
