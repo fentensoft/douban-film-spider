@@ -15,17 +15,20 @@ import string
 class ChangeProxyMiddleware(object):
     last_change = 0
 
-    def changeip(self):
+    def changeip(self, spider):
+        spider.logger.info("Shutting down last connection.")
         os.system("poff tmp")
         time.sleep(4)
+        spider.logger.info("Starting new connection.")
         os.system("pon tmp")
         time.sleep(4)
+        spider.logger.info("Adding new route.")
         os.system("ip route add default dev ppp0")
 
     def process_exception(self, request, exception, spider):
         if request.meta['p'] == spider.p:
             spider.logger.info("Changing ip")
-            self.changeip()
+            self.changeip(spider)
             spider.p += 1
             request.meta['p'] = spider.p
             spider.logger.info("Done.")
@@ -35,15 +38,15 @@ class ChangeProxyMiddleware(object):
 
     def process_response(self, request, response, spider):
         domain = response.url.split("//")[-1].split("/")[0]
-        if (response.status != 200) or (response.body.startswith('<script>')) or (domain == 'sec.douban.com'):
+        if (response.status != 200 and response.status != 404) or (response.body.startswith('<script>')) or (domain == 'sec.douban.com'):
             if request.meta['p'] == spider.p:
-                spider.logger.error("Changing ip: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
-                self.changeip()
+                spider.logger.info("Changing ip: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
+                self.changeip(spider)
                 spider.p += 1
                 request.meta['p'] = spider.p
                 request.cookies['bid'] = "".join(random.sample(string.ascii_letters + string.digits, 20))
                 request.headers['Uesr-Agent'] = ""
-                spider.logger.error("Done.")
+                spider.logger.info("Done.")
             else:
                 request.meta['p'] = spider.p
             return request
