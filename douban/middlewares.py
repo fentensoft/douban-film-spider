@@ -17,9 +17,9 @@ class ChangeProxyMiddleware(object):
 
     def changeip(self):
         os.system("poff tmp")
-        time.sleep(2)
+        time.sleep(4)
         os.system("pon tmp")
-        time.sleep(3)
+        time.sleep(4)
         os.system("ip route add default dev ppp0")
 
     def process_exception(self, request, exception, spider):
