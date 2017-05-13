@@ -12,7 +12,7 @@ class DoubanPipeline(object):
     film_table = None
 
     def open_spider(self, spider):
-        engine = create_engine('postgresql+psycopg2://postgres:orchid@192.168.10.232:5432/fentensoft', echo=False)
+        engine = create_engine('postgresql+psycopg2://postgres:orchid@127.0.0.1:5432/postgres', echo=False)
         self.conn = engine.connect()
         metadata = MetaData(engine)
         self.film_table = Table('film', metadata, autoload=True)

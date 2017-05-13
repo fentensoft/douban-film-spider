@@ -6,7 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-import urllib2
+import os
 import time
 import random
 import string
@@ -15,39 +15,37 @@ import string
 class ChangeProxyMiddleware(object):
     last_change = 0
 
-    def get_proxy(self):
-        if time.time() - self.last_change <= 10:
-            time.sleep(10 - time.time() + self.last_change)
-        self.last_change = time.time()
-        r = urllib2.urlopen(
-            "http://www.xdaili.cn/ipagent/privateProxy/applyStaticProxy?count=1&spiderId=adc77c3dc7da4e83b388904ab2b8ce7e&returnType=1").read().split("\n")[0]
-        return "http://" + r.strip()
+    def changeip(self):
+        os.system("poff tmp")
+        time.sleep(2)
+        os.system("pon tmp")
+        time.sleep(3)
+        os.system("ip route add default dev ppp0")
 
     def process_exception(self, request, exception, spider):
-        if request.meta['proxy'] == spider.proxy:
-            spider.logger.error("Changing proxy: " + exception.message)
-            p = self.get_proxy()
-            spider.proxy = p
-            request.meta['proxy'] = p
-            spider.logger.error("Got proxy: " + p)
+        if request.meta['p'] == spider.p:
+            spider.logger.info("Changing ip")
+            self.changeip()
+            spider.p += 1
+            request.meta['p'] = spider.p
+            spider.logger.info("Done.")
         else:
-            request.meta['proxy'] = spider.proxy
+            request.meta['p'] = spider.p
         return request
 
     def process_response(self, request, response, spider):
         domain = response.url.split("//")[-1].split("/")[0]
         if (response.status != 200) or (response.body.startswith('<script>')) or (domain == 'sec.douban.com'):
-            if request.meta['proxy'] == spider.proxy:
-                spider.logger.error("Changing proxy: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
-                spider.logger.error(request.headers['User-Agent'])
-                p = self.get_proxy()
-                spider.proxy = p
-                request.meta['proxy'] = p
+            if request.meta['p'] == spider.p:
+                spider.logger.error("Changing ip: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
+                self.changeip()
+                spider.p += 1
+                request.meta['p'] = spider.p
                 request.cookies['bid'] = "".join(random.sample(string.ascii_letters + string.digits, 20))
                 request.headers['Uesr-Agent'] = ""
-                spider.logger.error("Got proxy: " + p)
+                spider.logger.error("Done.")
             else:
-                request.meta['proxy'] = spider.proxy
+                request.meta['p'] = spider.p
             return request
         else:
             return response
