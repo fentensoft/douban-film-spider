@@ -36,7 +36,7 @@ class FilmSpider(scrapy.Spider):
         for i in hrefs:
             if i not in self.f:
                 self.f.add(i)
-                yield scrapy.Request(url=i, meta={"proxy": self.p}, cookies={"bid": "".join(random.sample(string.ascii_letters + string.digits, 20))}, callback=self.parse_film)
+                yield scrapy.Request(url=i, meta={"p": self.p}, cookies={"bid": "".join(random.sample(string.ascii_letters + string.digits, 20))}, callback=self.parse_film)
 
     def get_first(self, r, d = None):
         return r[0] if len(r) > 0 else d
