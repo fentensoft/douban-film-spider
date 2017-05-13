@@ -10,6 +10,8 @@ import os
 import time
 import random
 import string
+import json
+import urllib2
 
 
 class ChangeProxyMiddleware(object):
@@ -24,6 +26,8 @@ class ChangeProxyMiddleware(object):
         time.sleep(4)
         spider.logger.info("Adding new route.")
         os.system("ip route add default dev ppp0")
+        r = json.loads(urllib2.urlopen("http://httpbin.org/ip").read())["origin"]
+        spider.logger.info("New IP: " + r)
 
     def process_exception(self, request, exception, spider):
         if request.meta['p'] == spider.p:
