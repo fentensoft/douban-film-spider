@@ -27,6 +27,8 @@ class ChangeProxyMiddleware(object):
         os.system("pon tmp")
         while "ppp0" not in netifaces.interfaces():
             time.sleep(1)
+        while 2 not in netifaces.ifaddresses("ppp0"):
+            time.sleep(1)
         spider.logger.info("Adding new route.")
         os.system("ip route add default dev ppp0")
         time.sleep(1)
