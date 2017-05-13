@@ -10,8 +10,6 @@ import os
 import time
 import random
 import string
-import json
-import urllib2
 import netifaces
 
 
@@ -19,6 +17,7 @@ class ChangeProxyMiddleware(object):
     last_change = 0
 
     def changeip(self, spider):
+        i = 0
         spider.logger.info("Shutting down last connection.")
         os.system("poff tmp")
         while "ppp0" in netifaces.interfaces():
@@ -27,13 +26,14 @@ class ChangeProxyMiddleware(object):
         os.system("pon tmp")
         while "ppp0" not in netifaces.interfaces():
             time.sleep(1)
-        while 2 not in netifaces.ifaddresses("ppp0"):
-            time.sleep(1)
+        try:
+            while 2 not in netifaces.ifaddresses("ppp0"):
+                time.sleep(1)
+        except:
+            os.system("pon tmp")
+            time.sleep(5)
         spider.logger.info("Adding new route.")
         os.system("ip route add default dev ppp0")
-        time.sleep(1)
-        r = json.loads(urllib2.urlopen("http://httpbin.org/ip", timeout=5).read())["origin"]
-        spider.logger.info("New IP: " + r)
 
     def process_exception(self, request, exception, spider):
         if request.meta['p'] == spider.p:
