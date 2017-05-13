@@ -32,8 +32,7 @@ class ChangeProxyMiddleware(object):
         except:
             os.system("pon tmp")
             time.sleep(5)
-        spider.logger.info("Adding new route.")
-        os.system("ip route add default dev ppp0")
+        time.sleep(1)
 
     def process_exception(self, request, exception, spider):
         if request.meta['p'] == spider.p:
