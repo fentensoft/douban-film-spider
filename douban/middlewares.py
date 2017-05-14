@@ -17,28 +17,34 @@ class ChangeProxyMiddleware(object):
     last_change = 0
 
     def changeip(self, spider):
-        i = 0
-        spider.logger.info("Shutting down last connection.")
-        os.system("poff tmp")
-        while "ppp0" in netifaces.interfaces():
-            time.sleep(1)
-        spider.logger.info("Starting new connection.")
-        os.system("pon tmp")
-        while "ppp0" not in netifaces.interfaces():
-            time.sleep(1)
-        try:
-            while 2 not in netifaces.ifaddresses("ppp0"):
+        if spider.lock:
+            spider.logger.info("Waiting for new IP.")
+            while spider.lock:
+                pass
+        else:
+            spider.lock = True
+            spider.logger.info("Shutting down last connection.")
+            os.system("poff tmp")
+            while "ppp0" in netifaces.interfaces():
                 time.sleep(1)
-        except:
+            spider.logger.info("Starting new connection.")
             os.system("pon tmp")
-            time.sleep(5)
-        time.sleep(1)
+            while "ppp0" not in netifaces.interfaces():
+                time.sleep(1)
+            try:
+                while 2 not in netifaces.ifaddresses("ppp0"):
+                    time.sleep(1)
+            except:
+                os.system("pon tmp")
+                time.sleep(5)
+            time.sleep(1)
+            spider.lock = False
+            spider.p += 1
 
     def process_exception(self, request, exception, spider):
         if request.meta['p'] == spider.p:
             spider.logger.info("Changing ip")
             self.changeip(spider)
-            spider.p += 1
             request.meta['p'] = spider.p
             spider.logger.info("Done.")
         else:
@@ -51,7 +57,6 @@ class ChangeProxyMiddleware(object):
             if request.meta['p'] == spider.p:
                 spider.logger.info("Changing ip: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
                 self.changeip(spider)
-                spider.p += 1
                 request.meta['p'] = spider.p
                 request.cookies['bid'] = "".join(random.sample(string.ascii_letters + string.digits, 20))
                 request.headers['Uesr-Agent'] = ""

@@ -9,6 +9,7 @@ class FilmSpider(scrapy.Spider):
     name = "film"
     allowed_domains = ["douban.com"]
     f = None
+    lock = False
     p = 0
     start_urls = ['https://movie.douban.com/tag/2017?start=0&type=T']
 
