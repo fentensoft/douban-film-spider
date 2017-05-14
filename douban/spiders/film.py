@@ -10,6 +10,7 @@ class FilmSpider(scrapy.Spider):
     allowed_domains = ["douban.com"]
     f = None
     lock = False
+    local = "23.226.61.121"
     p = 0
     start_urls = ['https://movie.douban.com/tag/2017?start=0&type=T']
 
