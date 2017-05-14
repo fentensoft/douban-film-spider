@@ -19,24 +19,36 @@ class ChangeProxyMiddleware(object):
     last_change = 0
 
     def changeip(self, spider):
+        start = 0
         if spider.lock:
             spider.logger.info("Waiting for new IP.")
+            start = time.time()
             while spider.lock:
-                pass
+                if time.time() - start > 100:
+                    break
         else:
             spider.lock = True
-            spider.logger.info("Shutting down last connection.")
-            os.system("poff tmp")
-            while "ppp0" in netifaces.interfaces():
-                pass
-            spider.logger.info("Starting new connection.")
-            os.system("pon tmp")
-            while "ppp0" not in netifaces.interfaces():
-                pass
-            while 2 not in netifaces.ifaddresses("ppp0"):
-                pass
-            time.sleep(1)
             try:
+                spider.logger.info("Shutting down last connection.")
+                os.system("poff tmp")
+                start = time.time()
+                while "ppp0" in netifaces.interfaces():
+                    if time.time() - start > 100:
+                        start = time.time()
+                        os.system("poff tmp")
+                spider.logger.info("Starting new connection.")
+                os.system("pon tmp")
+                start = time.time()
+                while "ppp0" not in netifaces.interfaces():
+                    if time.time() - start > 100:
+                        os.system("pon tmp")
+                        start = time.time()
+                start = time.time()
+                while 2 not in netifaces.ifaddresses("ppp0"):
+                    if time.time() - start > 100:
+                        os.system("pon tmp")
+                        start = time.time()
+                time.sleep(1)
                 ip = json.loads(urllib2.urlopen("http://httpbin.org/ip", timeout=10).read())["origin"]
                 spider.logger.info("New IP: " + ip)
                 if ip == spider.local:
