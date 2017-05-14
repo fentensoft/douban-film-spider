@@ -8,8 +8,6 @@
 from scrapy import signals
 import os
 import time
-import random
-import string
 import netifaces
 import json
 import urllib2
@@ -76,7 +74,6 @@ class ChangeProxyMiddleware(object):
                 spider.logger.info("Changing ip: " + str(response.status) + " " + str(response.body.startswith('<script>')) + " " + domain)
                 self.changeip(spider)
                 request.meta['p'] = spider.p
-                request.cookies['bid'] = "".join(random.sample(string.ascii_letters + string.digits, 20))
                 request.headers['Uesr-Agent'] = ""
                 spider.logger.info("Done.")
             else:

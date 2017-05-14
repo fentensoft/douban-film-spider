@@ -21,7 +21,7 @@ class FilmSpider(scrapy.Spider):
     def parse_tags(self, response):
         hrefs = response.xpath('//table[@class="tagCol"]//a/@href').extract()
         for i in hrefs:
-            yield scrapy.Request(url="https://movie.douban.com" + i, meta={"p": self.p}, cookies={"bid": "".join(random.sample(string.ascii_letters + string.digits, 20))}, callback=self.parse_pages)
+            yield scrapy.Request(url="https://movie.douban.com" + i, meta={"p": self.p}, callback=self.parse_pages)
 
     def parse_pages(self, response):
         lists = response.xpath('//div[@class="paginator"]/a/text()').extract()
@@ -29,7 +29,7 @@ class FilmSpider(scrapy.Spider):
             last_page = int(lists[-1])
             baseurl = response.url + "?type=T&start="
             for i in range(last_page):
-                yield scrapy.Request(url=baseurl + str(20 * i), meta={"p": self.p}, cookies={"bid": "".join(random.sample(string.ascii_letters + string.digits, 20))}, callback=self.parse_list)
+                yield scrapy.Request(url=baseurl + str(20 * i), meta={"p": self.p}, callback=self.parse_list)
         else:
             self.parse_list(response)
 
@@ -38,7 +38,7 @@ class FilmSpider(scrapy.Spider):
         for i in hrefs:
             if i not in self.f:
                 self.f.add(i)
-                yield scrapy.Request(url=i, meta={"p": self.p}, cookies={"bid": "".join(random.sample(string.ascii_letters + string.digits, 20))}, callback=self.parse_film)
+                yield scrapy.Request(url=i, meta={"p": self.p}, callback=self.parse_film)
 
     def get_first(self, r, d = None):
         return r[0] if len(r) > 0 else d
