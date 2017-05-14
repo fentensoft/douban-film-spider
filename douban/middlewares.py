@@ -37,7 +37,7 @@ class ChangeProxyMiddleware(object):
                 pass
             time.sleep(1)
             try:
-                ip = json.loads(urllib2.urlopen("http://httpbin.org/ip", timeour=10))["origin"]
+                ip = json.loads(urllib2.urlopen("http://httpbin.org/ip", timeout=10))["origin"]
                 spider.logger.info("New IP: " + ip)
                 if ip == spider.local:
                     os.system("ip route add default dev ppp0")
